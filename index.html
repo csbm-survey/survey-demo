@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v10</title>
+<title>問卷調查 v11</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
+  *, *::before, *::after { box-sizing: border-box; }
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
   .logo-wrap { max-width: 640px; margin: 0 auto 16px; text-align: center; }
@@ -51,7 +52,7 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v10</div>
+  <div class="version-badge">頁面版本: v11</div>
   <div class="logo-wrap"><img src="https://i.meee.com.tw/IoKNWjU.png" alt="天上碑M"></div>
 
   <div class="card blocked-card hidden" id="blockedCard">
@@ -77,7 +78,7 @@
     <form id="surveyForm">
 
       <fieldset>
-        <legend>Q1　目前的狀態？（單選，必填）</legend>
+        <legend>Q1　您是哪種類型的玩家？（單選，必填）</legend>
         <label><input type="radio" name="status" value="一直都在玩" required> 一直都在玩</label>
         <label><input type="radio" name="status" value="最近回來玩（曾經停過一段時間）"> 最近回來玩（曾經停過一段時間）</label>
         <label><input type="radio" name="status" value="新加入的（一個月內開始）"> 新加入的（一個月內開始）</label>
@@ -194,7 +195,7 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v10";
+var PAGE_VERSION = "v11";
 var API_BASE = "https://survey.huahuaai.net";
 var SUBMIT_URL = API_BASE + "/submit";
 var STATUS_URL = API_BASE + "/status";
