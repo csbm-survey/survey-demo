@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v6</title>
+<title>問卷調查 v7</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -12,16 +12,26 @@
   .sub { color: #666; margin-bottom: 24px; font-size: 14px; }
   fieldset { border: none; margin: 0 0 24px; padding: 0; }
   legend { font-weight: 600; margin-bottom: 8px; }
+  .hint { font-size: 12px; color: #888; margin: -4px 0 8px; }
   label { display: block; margin: 6px 0; font-size: 14px; cursor: pointer; }
-  input[type=text], textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-  textarea { min-height: 80px; resize: vertical; }
+  input[type=text], textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; font-family: inherit; }
+  input.other-text { margin-top: 4px; margin-left: 24px; width: calc(100% - 24px); }
+  textarea { min-height: 70px; resize: vertical; }
+  .charcount { text-align: right; font-size: 12px; color: #999; }
   button { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 15px; cursor: pointer; }
   button:hover { background: #1d4ed8; }
   button:disabled { background: #9ca3af; cursor: not-allowed; }
 
-  .code-box { background: #111827; color: #34d399; font-size: 26px; font-weight: 700; letter-spacing: 2px; text-align: center; padding: 20px; border-radius: 8px; margin: 20px 0; word-break: break-all; }
-  .thanks-actions { display: flex; gap: 10px; }
-  .thanks-actions button { flex: 1; }
+  .thanks-card { text-align: center; animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .thanks-emoji { font-size: 48px; margin-bottom: 4px; }
+  .thanks-card h1 { font-size: 24px; margin-bottom: 6px; }
+  .thanks-card .sub { margin-bottom: 20px; }
+  .code-box { background: linear-gradient(135deg, #111827, #1f2937); color: #34d399; font-size: 28px; font-weight: 700; letter-spacing: 3px; text-align: center; padding: 24px 16px; border-radius: 10px; margin: 8px 0 20px; word-break: break-all; border: 2px dashed #34d399; }
+  .thanks-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .thanks-actions button { min-width: 160px; }
+  .copy-feedback { font-size: 13px; color: #16a34a; height: 18px; opacity: 0; transition: opacity 0.2s; }
+  .copy-feedback.show { opacity: 1; }
   .btn-secondary { background: #6b7280; }
   .btn-secondary:hover { background: #4b5563; }
 
@@ -30,49 +40,115 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v6</div>
+  <div class="version-badge">頁面版本: v7</div>
 
   <div class="card" id="surveyCard">
     <h1>簡易問卷調查</h1>
     <div class="sub">填寫完畢送出後，會取得一組專屬兌換序號。</div>
     <form id="surveyForm">
+
       <fieldset>
-        <legend>1. 您的姓名</legend>
-        <input type="text" name="name" placeholder="請輸入姓名">
+        <legend>Q1　目前的狀態？（單選，必填）</legend>
+        <label><input type="radio" name="status" value="一直都在玩" required> 一直都在玩</label>
+        <label><input type="radio" name="status" value="最近回來玩（曾經停過一段時間）"> 最近回來玩（曾經停過一段時間）</label>
+        <label><input type="radio" name="status" value="新加入的（一個月內開始）"> 新加入的（一個月內開始）</label>
       </fieldset>
 
       <fieldset>
-        <legend>2. 您對本服務的整體滿意度？</legend>
-        <label><input type="radio" name="satisfaction" value="非常滿意" required> 非常滿意</label>
-        <label><input type="radio" name="satisfaction" value="滿意"> 滿意</label>
-        <label><input type="radio" name="satisfaction" value="普通"> 普通</label>
-        <label><input type="radio" name="satisfaction" value="不滿意"> 不滿意</label>
-        <label><input type="radio" name="satisfaction" value="非常不滿意"> 非常不滿意</label>
+        <legend>Q2　您一天花費多少時間在天上碑M中?（包含掛機時間）（單選，必填）</legend>
+        <label><input type="radio" name="playtime" value="1小時以內" required> 1小時以內</label>
+        <label><input type="radio" name="playtime" value="1~2小時"> 1~2小時</label>
+        <label><input type="radio" name="playtime" value="2~3小時"> 2~3小時</label>
+        <label><input type="radio" name="playtime" value="3~4小時"> 3~4小時</label>
+        <label><input type="radio" name="playtime" value="4小時以上"> 4小時以上</label>
       </fieldset>
 
       <fieldset>
-        <legend>3. 您最常使用哪些功能？（可複選）</legend>
-        <label><input type="checkbox" name="feature" value="公告"> 公告</label>
-        <label><input type="checkbox" name="feature" value="活動"> 活動</label>
-        <label><input type="checkbox" name="feature" value="客服"> 客服</label>
-        <label><input type="checkbox" name="feature" value="商城"> 商城</label>
+        <legend>Q3　跟剛開始玩的時候比，現在的整體遊戲體驗？（單選，必填）</legend>
+        <label><input type="radio" name="experience" value="好很多" required> 好很多</label>
+        <label><input type="radio" name="experience" value="好一些"> 好一些</label>
+        <label><input type="radio" name="experience" value="差不多"> 差不多</label>
+        <label><input type="radio" name="experience" value="差一些"> 差一些</label>
+        <label><input type="radio" name="experience" value="差很多"> 差很多</label>
+      </fieldset>
+
+      <fieldset id="q4">
+        <legend>Q4　哪些地方變好了？（多選，最多 3 項）</legend>
+        <label><input type="checkbox" name="better" value="版本更新的內容量"> 版本更新的內容量</label>
+        <label><input type="checkbox" name="better" value="新地圖與副本"> 新地圖與副本</label>
+        <label><input type="checkbox" name="better" value="活動與獎勵發放"> 活動與獎勵發放</label>
+        <label><input type="checkbox" name="better" value="客服與公告處理"> 客服與公告處理</label>
+        <label><input type="checkbox" name="better" value="幫派與社交玩法"> 幫派與社交玩法</label>
+        <label><input type="checkbox" name="better" value="遊戲穩定度"> 遊戲穩定度</label>
+        <label><input type="checkbox" name="better" value="說不上來" data-exclusive="1"> 說不上來（選此請勿複選）</label>
+        <label><input type="checkbox" name="better" value="其他" data-other="1"> 其他
+          <input type="text" class="other-text" name="better_other" placeholder="請輸入" disabled>
+        </label>
+      </fieldset>
+
+      <fieldset id="q5">
+        <legend>Q5　哪些地方最需要改善？（多選，最多 3 項）</legend>
+        <label><input type="checkbox" name="improve" value="PK 相關"> PK 相關</label>
+        <label><input type="checkbox" name="improve" value="強化與抽卡的機率"> 強化與抽卡的機率</label>
+        <label><input type="checkbox" name="improve" value="遊戲穩定度（閃退、斷線）"> 遊戲穩定度（閃退、斷線）</label>
+        <label><input type="checkbox" name="improve" value="系統太複雜（不知道下一步該做什麼）"> 系統太複雜（不知道下一步該做什麼）</label>
+        <label><input type="checkbox" name="improve" value="倉庫與背包空間"> 倉庫與背包空間</label>
+        <label><input type="checkbox" name="improve" value="遊戲系統引導"> 遊戲系統引導</label>
+        <label><input type="checkbox" name="improve" value="回歸／新加入的追趕難度"> 回歸／新加入的追趕難度</label>
+        <label><input type="checkbox" name="improve" value="付費項目的 CP 值"> 付費項目的 CP 值</label>
+        <label><input type="checkbox" name="improve" value="其他" data-other="1"> 其他
+          <input type="text" class="other-text" name="improve_other" placeholder="請輸入" disabled>
+        </label>
       </fieldset>
 
       <fieldset>
-        <legend>4. 其他意見或建議</legend>
-        <textarea name="comment" placeholder="請留下您的意見"></textarea>
+        <legend>Q6　你比較希望營運團隊能多規劃哪類型的台版專屬內容？（單選）</legend>
+        <label><input type="radio" name="tw_content" value="幻影術(例：吉驍踏歲、小財蛇)"> 幻影術(例：吉驍踏歲、小財蛇)</label>
+        <label><input type="radio" name="tw_content" value="守護靈(例：禮輕情意粽、警察碑碑)"> 守護靈(例：禮輕情意粽、警察碑碑)</label>
+        <label><input type="radio" name="tw_content" value="八卦(例：一周年/二周年八卦)"> 八卦(例：一周年/二周年八卦)</label>
+        <label><input type="radio" name="tw_content" value="特殊地圖(例：蓬萊仙島二層)"> 特殊地圖(例：蓬萊仙島二層)</label>
+        <label><input type="radio" name="tw_content" value="特殊活動(例：變異的店小二、麻將/尪仔標活動等)"> 特殊活動(例：變異的店小二、麻將/尪仔標活動等)</label>
+        <label><input type="radio" name="tw_content" value="其他" data-other="1"> 其他
+          <input type="text" class="other-text" name="tw_content_other" placeholder="請輸入" disabled>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Q7　你會透過哪些管道，關注天上碑M的相關資訊？（複選，無限制）</legend>
+        <label><input type="checkbox" name="channels" value="官方網站公告"> 官方網站公告</label>
+        <label><input type="checkbox" name="channels" value="官方LINE群"> 官方LINE群</label>
+        <label><input type="checkbox" name="channels" value="官方FB"> 官方FB</label>
+        <label><input type="checkbox" name="channels" value="遊戲內公告"> 遊戲內公告</label>
+        <label><input type="checkbox" name="channels" value="巴哈姆特"> 巴哈姆特</label>
+        <label><input type="checkbox" name="channels" value="其他" data-other="1"> 其他
+          <input type="text" class="other-text" name="channels_other" placeholder="請輸入" disabled>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Q8　你認為最近的改動中，哪一個讓你最滿意？（開放，選填，限 100 字）</legend>
+        <textarea name="satisfied_change" maxlength="100" placeholder="請輸入"></textarea>
+        <div class="charcount"><span id="q8count">0</span>/100</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Q9　如果只能改一件事，希望是什麼？（開放，選填，限 100 字）</legend>
+        <textarea name="one_change" maxlength="100" placeholder="請輸入"></textarea>
+        <div class="charcount"><span id="q9count">0</span>/100</div>
       </fieldset>
 
       <button type="submit" id="submitBtn">送出問卷</button>
     </form>
   </div>
 
-  <div class="card hidden" id="thanksCard">
+  <div class="card thanks-card hidden" id="thanksCard">
+    <div class="thanks-emoji">🎉</div>
     <h1>感謝您的填答！</h1>
-    <div class="sub">請使用下方序號至遊戲內兌換獎勵：</div>
+    <div class="sub">請使用下方序號至遊戲內兌換獎勵</div>
     <div class="code-box" id="codeBox">------</div>
     <div class="thanks-actions">
       <button id="copyCodeBtn">複製序號</button>
+      <div class="copy-feedback" id="copyFeedback">已複製 ✓</div>
     </div>
   </div>
 
@@ -85,13 +161,90 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v6";
+var PAGE_VERSION = "v7";
 var SUBMIT_URL = "https://survey.huahuaai.net/submit";
+var MAX_CHOICES = 3;
+
+function setupExclusiveGroup(fieldsetId, groupName) {
+  var fieldset = document.getElementById(fieldsetId);
+  var checkboxes = Array.prototype.slice.call(fieldset.querySelectorAll('input[name="' + groupName + '"]'));
+
+  function refresh() {
+    var checked = checkboxes.filter(function (cb) { return cb.checked; });
+    var exclusiveBox = checkboxes.filter(function (cb) { return cb.dataset.exclusive === '1'; })[0];
+    var atMax = checked.length >= MAX_CHOICES;
+
+    checkboxes.forEach(function (cb) {
+      if (!cb.checked) {
+        var blockedByExclusive = exclusiveBox && exclusiveBox.checked && cb !== exclusiveBox;
+        var blockedByMax = atMax;
+        cb.disabled = blockedByExclusive || blockedByMax;
+      } else {
+        cb.disabled = false;
+      }
+      var otherInput = cb.parentElement.querySelector('.other-text');
+      if (otherInput) otherInput.disabled = !cb.checked;
+    });
+  }
+
+  checkboxes.forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      if (cb.dataset.exclusive === '1' && cb.checked) {
+        checkboxes.forEach(function (other) {
+          if (other !== cb) other.checked = false;
+        });
+      } else if (cb.checked) {
+        var exclusiveBox = checkboxes.filter(function (o) { return o.dataset.exclusive === '1'; })[0];
+        if (exclusiveBox) exclusiveBox.checked = false;
+      }
+      refresh();
+    });
+  });
+  refresh();
+}
+
+setupExclusiveGroup('q4', 'better');
+setupExclusiveGroup('q5', 'improve');
+
+document.querySelectorAll('input[type=radio][data-other="1"], input[type=checkbox][data-other="1"]').forEach(function (cb) {
+  if (cb.closest('#q4') || cb.closest('#q5')) return; // 已在 setupExclusiveGroup 處理
+  cb.addEventListener('change', function () {
+    var otherInput = cb.parentElement.querySelector('.other-text');
+    if (!otherInput) return;
+    if (cb.type === 'radio') {
+      document.querySelectorAll('input[name="' + cb.name + '"]').forEach(function (sib) {
+        var sibOther = sib.parentElement.querySelector('.other-text');
+        if (sibOther) sibOther.disabled = !sib.checked;
+      });
+    } else {
+      otherInput.disabled = !cb.checked;
+    }
+  });
+});
+
+function bindCharCount(textareaName, countId) {
+  var el = document.querySelector('textarea[name="' + textareaName + '"]');
+  var countEl = document.getElementById(countId);
+  el.addEventListener('input', function () { countEl.textContent = el.value.length; });
+}
+bindCharCount('satisfied_change', 'q8count');
+bindCharCount('one_change', 'q9count');
 
 function showCard(id) {
   ["surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
     document.getElementById(cid).classList.toggle("hidden", cid !== id);
   });
+}
+
+function collectChecked(form, name) {
+  return Array.prototype.slice.call(form.querySelectorAll('input[name="' + name + '"]:checked')).map(function (el) { return el.value; });
+}
+
+function withOther(form, values, otherFieldName) {
+  if (values.indexOf('其他') === -1) return values;
+  var otherInput = form.querySelector('input[name="' + otherFieldName + '"]');
+  var otherText = otherInput ? otherInput.value.trim() : '';
+  return values.map(function (v) { return v === '其他' && otherText ? ('其他：' + otherText) : v; });
 }
 
 function submitSurvey(e) {
@@ -102,17 +255,32 @@ function submitSurvey(e) {
   submitBtn.textContent = "送出中...";
 
   var data = new FormData(form);
-  var payload = {
-    name: data.get("name") || "",
-    satisfaction: data.get("satisfaction") || "",
-    features: data.getAll("feature").join("、"),
-    comment: data.get("comment") || ""
+
+  var better = withOther(form, collectChecked(form, 'better'), 'better_other');
+  var improve = withOther(form, collectChecked(form, 'improve'), 'improve_other');
+  var channels = withOther(form, collectChecked(form, 'channels'), 'channels_other');
+  var twContent = data.get('tw_content') || '';
+  if (twContent === '其他') {
+    var twOther = (data.get('tw_content_other') || '').trim();
+    if (twOther) twContent = '其他：' + twOther;
+  }
+
+  var answers = {
+    "Q1 目前的狀態": data.get('status') || '',
+    "Q2 每日遊玩時間": data.get('playtime') || '',
+    "Q3 整體遊戲體驗變化": data.get('experience') || '',
+    "Q4 變好的地方": better,
+    "Q5 需改善的地方": improve,
+    "Q6 希望的台版專屬內容": twContent,
+    "Q7 關注管道": channels,
+    "Q8 最滿意的改動": data.get('satisfied_change') || '',
+    "Q9 最希望改的一件事": data.get('one_change') || ''
   };
 
   fetch(SUBMIT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ answers: answers })
   })
     .then(function (r) { return r.json(); })
     .then(function (res) {
@@ -138,12 +306,19 @@ document.getElementById("surveyForm").addEventListener("submit", submitSurvey);
 
 document.getElementById("copyCodeBtn").addEventListener("click", function () {
   var code = document.getElementById("codeBox").textContent;
+  var feedback = document.getElementById("copyFeedback");
   var ta = document.createElement("textarea");
   ta.value = code;
   document.body.appendChild(ta);
   ta.select();
-  try { document.execCommand("copy"); alert("已複製序號: " + code); }
-  catch (e) { alert("複製失敗，請手動選取畫面上的序號。"); }
+  try {
+    document.execCommand("copy");
+    feedback.classList.add("show");
+    setTimeout(function () { feedback.classList.remove("show"); }, 2000);
+  } catch (e) {
+    feedback.textContent = "複製失敗，請手動選取";
+    feedback.classList.add("show");
+  }
   document.body.removeChild(ta);
 });
 
