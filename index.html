@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v4</title>
+<title>問卷調查 v5</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -30,7 +30,7 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v4</div>
+  <div class="version-badge">頁面版本: v5</div>
 
   <div class="card" id="surveyCard">
     <h1>簡易問卷調查</h1>
@@ -85,7 +85,7 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v4";
+var PAGE_VERSION = "v5";
 var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynGowWk2Q8o8iaHRR3Kp5ZXOwDE2nbvuar40arEdGxyuOrN7Au9dYeHMqqw4yc852J/exec";
 
 function fetchWithTimeout(url, ms) {
@@ -106,6 +106,10 @@ function getIp() {
     .catch(function () { return "unknown"; });
 }
 
+// 頁面一開啟就先在背景查好 IP，跟玩家填表單同時進行，
+// 送出時不用再等，除非玩家填表單填得比查IP還快（2~4秒內）。
+var ipPromise = getIp();
+
 function showCard(id) {
   ["surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
     document.getElementById(cid).classList.toggle("hidden", cid !== id);
@@ -121,7 +125,7 @@ function submitSurvey(e) {
 
   var data = new FormData(form);
 
-  getIp().then(function (ip) {
+  ipPromise.then(function (ip) {
     var payload = {
       ip: ip,
       name: data.get("name") || "",
