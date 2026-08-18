@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v1</title>
+<title>問卷調查 v2</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -19,25 +19,18 @@
   button:hover { background: #1d4ed8; }
   #result { margin-top: 20px; padding: 16px; border-radius: 8px; background: #ecfdf5; color: #065f46; display: none; white-space: pre-wrap; font-size: 14px; }
 
-  /* 診斷面板 */
-  .debug-card { max-width: 640px; margin: 0 auto; background: #111827; color: #d1fae5; border-radius: 12px; padding: 0; overflow: hidden; font-size: 12px; }
-  .debug-toggle { width: 100%; text-align: left; background: #1f2937; color: #fbbf24; border: none; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 0; }
-  .debug-toggle:hover { background: #1f2937; }
-  .debug-body { display: none; padding: 16px; }
-  .debug-body.open { display: block; }
-  .debug-section { margin-bottom: 16px; }
-  .debug-section h3 { margin: 0 0 6px; color: #93c5fd; font-size: 13px; }
-  .debug-pre { background: #030712; padding: 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; max-height: 220px; overflow-y: auto; line-height: 1.5; }
-  .debug-pre.tall { max-height: 360px; }
-  .debug-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-  .debug-actions button { background: #374151; padding: 6px 12px; font-size: 12px; border-radius: 6px; }
-  .debug-actions button:hover { background: #4b5563; }
-  .debug-search { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1px solid #374151; background: #030712; color: #d1fae5; font-size: 12px; margin-bottom: 6px; }
-  .tag-custom { color: #fbbf24; }
+  .ip-card { max-width: 640px; margin: 0 auto; background: #111827; color: #d1fae5; border-radius: 12px; padding: 20px; font-size: 13px; }
+  .ip-card h3 { margin: 0 0 10px; color: #93c5fd; font-size: 14px; }
+  .ip-value { background: #030712; padding: 16px; border-radius: 8px; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 1px; word-break: break-all; }
+  .ip-value.loading { color: #9ca3af; font-size: 14px; font-weight: 400; }
+  .ip-value.error { color: #f87171; font-size: 13px; font-weight: 400; }
+  .ip-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .ip-actions button { background: #374151; padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+  .ip-actions button:hover { background: #4b5563; }
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v1</div>
+  <div class="version-badge">頁面版本: v2</div>
   <div class="card">
     <h1>簡易問卷調查</h1>
     <div class="sub">測試用問卷頁面，填寫完畢請按送出。</div>
@@ -74,44 +67,17 @@
     <div id="result"></div>
   </div>
 
-  <div class="debug-card">
-    <button class="debug-toggle" id="debugToggle">▶ 系統診斷面板 v1（給開發測試用，點此展開）</button>
-    <div class="debug-body" id="debugBody">
-      <div class="debug-section">
-        <h3>1. 網址與 GET 參數</h3>
-        <div class="debug-pre" id="dbgUrl"></div>
-      </div>
-      <div class="debug-section">
-        <h3>2. window.name / referrer</h3>
-        <div class="debug-pre" id="dbgMeta"></div>
-      </div>
-      <div class="debug-section">
-        <h3>3. 疑似為原生 WebView 注入的全域物件（差異比對）</h3>
-        <div class="debug-pre" id="dbgGlobals"></div>
-      </div>
-      <div class="debug-section">
-        <h3>4. 常見 Bridge 名稱檢查（GameBridge / Android / webkit / chrome.webview 等）</h3>
-        <div class="debug-pre" id="dbgBridge"></div>
-      </div>
-      <div class="debug-section">
-        <h3>5. postMessage 監聽記錄（收到即時顯示，含時間/來源/內容）</h3>
-        <div class="debug-pre" id="dbgMsg">尚未收到任何 postMessage...</div>
-      </div>
-      <div class="debug-section">
-        <h3>6. 完整 window 屬性清單（直接列出所有東西，不用猜名字）</h3>
-        <input type="text" class="debug-search" id="dbgFilter" placeholder="輸入關鍵字篩選，例如 bridge / uid / android（留空顯示全部）">
-        <div class="debug-pre tall" id="dbgAll"></div>
-      </div>
-      <div class="debug-actions">
-        <button id="dbgRescan">重新掃描</button>
-        <button id="dbgCopy">複製完整診斷資訊</button>
-        <button id="dbgClearMsg">清除訊息記錄</button>
-      </div>
+  <div class="ip-card">
+    <h3>你目前的 IP 位址</h3>
+    <div class="ip-value loading" id="ipValue">查詢中...</div>
+    <div class="ip-actions">
+      <button id="ipRetry">重新查詢</button>
+      <button id="ipCopy">複製 IP</button>
     </div>
   </div>
 
 <script>
-var PAGE_VERSION = "v1";
+var PAGE_VERSION = "v2";
 
 document.getElementById("surveyForm").addEventListener("submit", function (e) {
   e.preventDefault();
@@ -127,204 +93,51 @@ document.getElementById("surveyForm").addEventListener("submit", function (e) {
 });
 
 (function () {
-  var msgLog = [];
-  var allPropsCache = [];
+  var ipEl = document.getElementById("ipValue");
+  var currentIp = null;
 
-  function fmtTime() {
-    var d = new Date();
-    var p = function (n) { return String(n).padStart(2, "0"); };
-    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) + "." + String(d.getMilliseconds()).padStart(3, "0");
+  function setLoading() {
+    ipEl.className = "ip-value loading";
+    ipEl.textContent = "查詢中...";
   }
 
-  function scanUrl() {
-    var out = [];
-    out.push("完整網址: " + location.href);
-    out.push("path: " + location.pathname);
-    out.push("search (GET query string): " + (location.search || "(無)"));
-    out.push("hash: " + (location.hash || "(無)"));
-    var params = new URLSearchParams(location.search);
-    var keys = Array.from(params.keys());
-    if (keys.length) {
-      out.push("");
-      out.push("解析出的 GET 參數：");
-      keys.forEach(function (k) { out.push("  " + k + " = " + params.get(k)); });
-    } else {
-      out.push("");
-      out.push("(此次開啟網址沒有帶任何 GET 參數)");
-    }
-    document.getElementById("dbgUrl").textContent = out.join("\n");
+  function setError(msg) {
+    ipEl.className = "ip-value error";
+    ipEl.textContent = "查詢失敗: " + msg;
   }
 
-  function scanMeta() {
-    var out = [];
-    out.push("document.referrer: " + (document.referrer || "(空)"));
-    out.push("window.name: " + (window.name || "(空)"));
-    out.push("navigator.userAgent: " + navigator.userAgent);
-    document.getElementById("dbgMeta").textContent = out.join("\n");
+  function setIp(ip) {
+    currentIp = ip;
+    ipEl.className = "ip-value";
+    ipEl.textContent = ip;
   }
 
-  function getCleanKeys() {
-    var iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-    var cleanKeys = {};
-    Object.getOwnPropertyNames(iframe.contentWindow).forEach(function (k) { cleanKeys[k] = true; });
-    document.body.removeChild(iframe);
-    return cleanKeys;
+  function fetchIp() {
+    setLoading();
+    fetch("https://api.ipify.org?format=json")
+      .then(function (r) { return r.json(); })
+      .then(function (data) { setIp(data.ip); })
+      .catch(function () {
+        return fetch("https://ipapi.co/json/")
+          .then(function (r) { return r.json(); })
+          .then(function (data) { setIp(data.ip); });
+      })
+      .catch(function (err) { setError(err.message || String(err)); });
   }
 
-  function scanGlobals(cleanKeys) {
-    var noise = ["dbgUrl", "dbgMeta", "dbgGlobals", "dbgBridge", "dbgMsg", "dbgAll", "dbgFilter", "PAGE_VERSION", "webkitStorageInfo"];
-    var extra = Object.getOwnPropertyNames(window).filter(function (k) {
-      return !cleanKeys[k] && noise.indexOf(k) === -1;
-    });
-    var out = [];
-    if (extra.length) {
-      out.push("在主頁面中偵測到、但一般乾淨網頁不會有的全域變數，可能就是原生端注入的橋接物件：");
-      extra.forEach(function (k) {
-        var type;
-        try { type = typeof window[k]; } catch (e) { type = "(無法讀取: " + e.message + ")"; }
-        out.push("  window." + k + "  [" + type + "]");
-      });
-    } else {
-      out.push("目前沒有偵測到額外的全域變數。若原生端是延遲注入，請按下方「重新掃描」再試一次。");
-    }
-    document.getElementById("dbgGlobals").textContent = out.join("\n");
-  }
-
-  function tryCall(label, fn) {
-    try {
-      var v = fn();
-      if (v && typeof v.then === "function") {
-        v.then(function (r) { appendBridgeLine(label + " -> resolved: " + JSON.stringify(r)); })
-         .catch(function (e) { appendBridgeLine(label + " -> promise rejected: " + e.message); });
-        return label + " -> (回傳 Promise，結果會補寫在下方)";
-      }
-      return label + " -> " + JSON.stringify(v);
-    } catch (err) {
-      return null;
-    }
-  }
-
-  var bridgeLines = [];
-  function appendBridgeLine(line) {
-    bridgeLines.push(line);
-    document.getElementById("dbgBridge").textContent = bridgeLines.join("\n");
-  }
-
-  function scanBridge() {
-    bridgeLines = [];
-    var candidates = [
-      ["window.GameBridge", function () { return typeof window.GameBridge; }],
-      ["window.Android", function () { return typeof window.Android; }],
-      ["window.AndroidBridge", function () { return typeof window.AndroidBridge; }],
-      ["window.JSBridge", function () { return typeof window.JSBridge; }],
-      ["window.WebViewJavascriptBridge", function () { return typeof window.WebViewJavascriptBridge; }],
-      ["window.webkit.messageHandlers", function () { return Object.keys(window.webkit.messageHandlers); }],
-      ["window.chrome.webview", function () { return typeof window.chrome.webview; }],
-      ["window.external", function () { return typeof window.external; }],
-      ["window.NativeBridge", function () { return typeof window.NativeBridge; }],
-      ["window.csbBridge", function () { return typeof window.csbBridge; }],
-      ["window.cordova", function () { return typeof window.cordova; }],
-      ["window.unity / window.unityInstance", function () { return typeof window.unity + " / " + typeof window.unityInstance; }]
-    ];
-    var found = false;
-    candidates.forEach(function (c) {
-      var r = tryCall(c[0], c[1]);
-      if (r !== null) {
-        found = true;
-        bridgeLines.push(r);
-      }
-    });
-    if (!found) {
-      bridgeLines.push("以上常見名稱都沒有偵測到。");
-    }
-    document.getElementById("dbgBridge").textContent = bridgeLines.join("\n");
-  }
-
-  function renderMsgLog() {
-    var box = document.getElementById("dbgMsg");
-    if (!msgLog.length) {
-      box.textContent = "尚未收到任何 postMessage...";
-      return;
-    }
-    box.textContent = msgLog.join("\n\n");
-  }
-
-  window.addEventListener("message", function (event) {
-    var dataStr;
-    try { dataStr = typeof event.data === "string" ? event.data : JSON.stringify(event.data); }
-    catch (e) { dataStr = String(event.data); }
-    msgLog.push("[" + fmtTime() + "] origin=" + event.origin + "\ndata: " + dataStr);
-    renderMsgLog();
-  });
-
-  function scanAllProps(cleanKeys) {
-    var names = Object.getOwnPropertyNames(window).sort(function (a, b) {
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    });
-    allPropsCache = names.map(function (k) {
-      var type;
-      try { type = typeof window[k]; } catch (e) { type = "?"; }
-      var custom = !cleanKeys[k];
-      return { name: k, type: type, custom: custom };
-    });
-    renderAllProps();
-  }
-
-  function renderAllProps() {
-    var filter = (document.getElementById("dbgFilter").value || "").toLowerCase();
-    var list = allPropsCache;
-    if (filter) {
-      list = list.filter(function (item) { return item.name.toLowerCase().indexOf(filter) !== -1; });
-    }
-    var out = [];
-    out.push("共 " + allPropsCache.length + " 個屬性，目前顯示 " + list.length + " 個（標示 [自訂] 的是這個頁面才有、瀏覽器內建沒有的）");
-    out.push("");
-    list.forEach(function (item) {
-      out.push((item.custom ? "[自訂] " : "       ") + "window." + item.name + "  (" + item.type + ")");
-    });
-    document.getElementById("dbgAll").textContent = out.join("\n");
-  }
-
-  function runFullScan() {
-    var cleanKeys = getCleanKeys();
-    scanUrl();
-    scanMeta();
-    scanGlobals(cleanKeys);
-    scanBridge();
-    scanAllProps(cleanKeys);
-  }
-
-  document.getElementById("debugToggle").addEventListener("click", function () {
-    var body = document.getElementById("debugBody");
-    var open = body.classList.toggle("open");
-    this.textContent = (open ? "▼" : "▶") + " 系統診斷面板 " + PAGE_VERSION + "（給開發測試用，點此展開）";
-    if (open) runFullScan();
-  });
-  document.getElementById("dbgRescan").addEventListener("click", runFullScan);
-  document.getElementById("dbgFilter").addEventListener("input", renderAllProps);
-  document.getElementById("dbgClearMsg").addEventListener("click", function () { msgLog = []; renderMsgLog(); });
-  document.getElementById("dbgCopy").addEventListener("click", function () {
-    var full = [
-      "== 頁面版本 ==\n" + PAGE_VERSION,
-      "== 網址/GET參數 ==\n" + document.getElementById("dbgUrl").textContent,
-      "== window.name/referrer ==\n" + document.getElementById("dbgMeta").textContent,
-      "== 疑似注入的全域物件 ==\n" + document.getElementById("dbgGlobals").textContent,
-      "== 常見 Bridge 檢查 ==\n" + document.getElementById("dbgBridge").textContent,
-      "== postMessage 記錄 ==\n" + document.getElementById("dbgMsg").textContent,
-      "== 完整 window 屬性清單 ==\n" + document.getElementById("dbgAll").textContent
-    ].join("\n\n");
+  document.getElementById("ipRetry").addEventListener("click", fetchIp);
+  document.getElementById("ipCopy").addEventListener("click", function () {
+    if (!currentIp) { alert("目前沒有可複製的 IP"); return; }
     var ta = document.createElement("textarea");
-    ta.value = full;
+    ta.value = currentIp;
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand("copy"); alert("診斷資訊已複製，請貼給開發人員或貼回聊天視窗。"); }
-    catch (e) { alert("複製失敗，請手動選取以下內容:\n\n" + full); }
+    try { document.execCommand("copy"); alert("已複製: " + currentIp); }
+    catch (e) { alert("複製失敗，請手動選取: " + currentIp); }
     document.body.removeChild(ta);
   });
 
-  runFullScan();
+  fetchIp();
 })();
 </script>
 </body>
