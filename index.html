@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v2</title>
+<title>問卷調查 v3</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -17,23 +17,24 @@
   textarea { min-height: 80px; resize: vertical; }
   button { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 15px; cursor: pointer; }
   button:hover { background: #1d4ed8; }
-  #result { margin-top: 20px; padding: 16px; border-radius: 8px; background: #ecfdf5; color: #065f46; display: none; white-space: pre-wrap; font-size: 14px; }
+  button:disabled { background: #9ca3af; cursor: not-allowed; }
 
-  .ip-card { max-width: 640px; margin: 0 auto; background: #111827; color: #d1fae5; border-radius: 12px; padding: 20px; font-size: 13px; }
-  .ip-card h3 { margin: 0 0 10px; color: #93c5fd; font-size: 14px; }
-  .ip-value { background: #030712; padding: 16px; border-radius: 8px; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 1px; word-break: break-all; }
-  .ip-value.loading { color: #9ca3af; font-size: 14px; font-weight: 400; }
-  .ip-value.error { color: #f87171; font-size: 13px; font-weight: 400; }
-  .ip-actions { display: flex; gap: 8px; margin-top: 10px; }
-  .ip-actions button { background: #374151; padding: 6px 12px; font-size: 12px; border-radius: 6px; }
-  .ip-actions button:hover { background: #4b5563; }
+  .code-box { background: #111827; color: #34d399; font-size: 26px; font-weight: 700; letter-spacing: 2px; text-align: center; padding: 20px; border-radius: 8px; margin: 20px 0; word-break: break-all; }
+  .thanks-actions { display: flex; gap: 10px; }
+  .thanks-actions button { flex: 1; }
+  .btn-secondary { background: #6b7280; }
+  .btn-secondary:hover { background: #4b5563; }
+
+  .error-box { background: #fef2f2; color: #991b1b; padding: 16px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v2</div>
-  <div class="card">
+  <div class="version-badge">頁面版本: v3</div>
+
+  <div class="card" id="surveyCard">
     <h1>簡易問卷調查</h1>
-    <div class="sub">測試用問卷頁面，填寫完畢請按送出。</div>
+    <div class="sub">填寫完畢送出後，會取得一組專屬兌換序號。</div>
     <form id="surveyForm">
       <fieldset>
         <legend>1. 您的姓名</legend>
@@ -62,83 +63,108 @@
         <textarea name="comment" placeholder="請留下您的意見"></textarea>
       </fieldset>
 
-      <button type="submit">送出問卷</button>
+      <button type="submit" id="submitBtn">送出問卷</button>
     </form>
-    <div id="result"></div>
   </div>
 
-  <div class="ip-card">
-    <h3>你目前的 IP 位址</h3>
-    <div class="ip-value loading" id="ipValue">查詢中...</div>
-    <div class="ip-actions">
-      <button id="ipRetry">重新查詢</button>
-      <button id="ipCopy">複製 IP</button>
+  <div class="card hidden" id="thanksCard">
+    <h1>感謝您的填答！</h1>
+    <div class="sub">請使用下方序號至遊戲內兌換獎勵：</div>
+    <div class="code-box" id="codeBox">------</div>
+    <div class="thanks-actions">
+      <button id="copyCodeBtn">複製序號</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="errorCard">
+    <h1>送出失敗</h1>
+    <div class="error-box" id="errorMsg"></div>
+    <div class="thanks-actions" style="margin-top:16px;">
+      <button class="btn-secondary" id="retryBtn">重新送出</button>
     </div>
   </div>
 
 <script>
-var PAGE_VERSION = "v2";
+var PAGE_VERSION = "v3";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynGowWk2Q8o8iaHRR3Kp5ZXOwDE2nbvuar40arEdGxyuOrN7Au9dYeHMqqw4yc852J/exec";
 
-document.getElementById("surveyForm").addEventListener("submit", function (e) {
+function getIp() {
+  return fetch("https://api.ipify.org?format=json")
+    .then(function (r) { return r.json(); })
+    .then(function (d) { return d.ip; })
+    .catch(function () {
+      return fetch("https://ipapi.co/json/")
+        .then(function (r) { return r.json(); })
+        .then(function (d) { return d.ip; });
+    })
+    .catch(function () { return "unknown"; });
+}
+
+function showCard(id) {
+  ["surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
+    document.getElementById(cid).classList.toggle("hidden", cid !== id);
+  });
+}
+
+function submitSurvey(e) {
   e.preventDefault();
-  var data = new FormData(e.target);
-  var lines = [];
-  lines.push("姓名: " + (data.get("name") || "未填"));
-  lines.push("滿意度: " + (data.get("satisfaction") || "未選"));
-  lines.push("常用功能: " + (data.getAll("feature").join("、") || "無"));
-  lines.push("意見: " + (data.get("comment") || "無"));
-  var box = document.getElementById("result");
-  box.style.display = "block";
-  box.textContent = "感謝您的填答！\n\n" + lines.join("\n");
+  var form = document.getElementById("surveyForm");
+  var submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "送出中...";
+
+  var data = new FormData(form);
+
+  getIp().then(function (ip) {
+    var payload = {
+      ip: ip,
+      name: data.get("name") || "",
+      satisfaction: data.get("satisfaction") || "",
+      features: data.getAll("feature").join("、"),
+      comment: data.get("comment") || ""
+    };
+    return fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "送出問卷";
+      if (res.ok) {
+        document.getElementById("codeBox").textContent = res.code;
+        showCard("thanksCard");
+      } else {
+        document.getElementById("errorMsg").textContent = res.error || "未知錯誤，請稍後再試。";
+        showCard("errorCard");
+      }
+    })
+    .catch(function (err) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "送出問卷";
+      document.getElementById("errorMsg").textContent = "網路連線失敗，請確認網路狀態後再試一次。\n(" + (err.message || err) + ")";
+      showCard("errorCard");
+    });
+}
+
+document.getElementById("surveyForm").addEventListener("submit", submitSurvey);
+
+document.getElementById("copyCodeBtn").addEventListener("click", function () {
+  var code = document.getElementById("codeBox").textContent;
+  var ta = document.createElement("textarea");
+  ta.value = code;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); alert("已複製序號: " + code); }
+  catch (e) { alert("複製失敗，請手動選取畫面上的序號。"); }
+  document.body.removeChild(ta);
 });
 
-(function () {
-  var ipEl = document.getElementById("ipValue");
-  var currentIp = null;
-
-  function setLoading() {
-    ipEl.className = "ip-value loading";
-    ipEl.textContent = "查詢中...";
-  }
-
-  function setError(msg) {
-    ipEl.className = "ip-value error";
-    ipEl.textContent = "查詢失敗: " + msg;
-  }
-
-  function setIp(ip) {
-    currentIp = ip;
-    ipEl.className = "ip-value";
-    ipEl.textContent = ip;
-  }
-
-  function fetchIp() {
-    setLoading();
-    fetch("https://api.ipify.org?format=json")
-      .then(function (r) { return r.json(); })
-      .then(function (data) { setIp(data.ip); })
-      .catch(function () {
-        return fetch("https://ipapi.co/json/")
-          .then(function (r) { return r.json(); })
-          .then(function (data) { setIp(data.ip); });
-      })
-      .catch(function (err) { setError(err.message || String(err)); });
-  }
-
-  document.getElementById("ipRetry").addEventListener("click", fetchIp);
-  document.getElementById("ipCopy").addEventListener("click", function () {
-    if (!currentIp) { alert("目前沒有可複製的 IP"); return; }
-    var ta = document.createElement("textarea");
-    ta.value = currentIp;
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand("copy"); alert("已複製: " + currentIp); }
-    catch (e) { alert("複製失敗，請手動選取: " + currentIp); }
-    document.body.removeChild(ta);
-  });
-
-  fetchIp();
-})();
+document.getElementById("retryBtn").addEventListener("click", function () {
+  showCard("surveyCard");
+});
 </script>
 </body>
 </html>
