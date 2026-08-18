@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v7</title>
+<title>問卷調查 v8</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -18,9 +19,13 @@
   input.other-text { margin-top: 4px; margin-left: 24px; width: calc(100% - 24px); }
   textarea { min-height: 70px; resize: vertical; }
   .charcount { text-align: right; font-size: 12px; color: #999; }
+  .turnstile-wrap { margin: 8px 0 16px; }
   button { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 15px; cursor: pointer; }
   button:hover { background: #1d4ed8; }
   button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  .blocked-card { text-align: center; }
+  .blocked-emoji { font-size: 40px; margin-bottom: 8px; }
 
   .thanks-card { text-align: center; animation: fadeIn 0.4s ease-out; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -40,9 +45,14 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v7</div>
+  <div class="version-badge">頁面版本: v8</div>
 
-  <div class="card" id="surveyCard">
+  <div class="card blocked-card hidden" id="blockedCard">
+    <div class="blocked-emoji">⏳</div>
+    <h1>問券填寫過於頻繁，請稍後再嘗試。</h1>
+  </div>
+
+  <div class="card hidden" id="surveyCard">
     <h1>簡易問卷調查</h1>
     <div class="sub">填寫完畢送出後，會取得一組專屬兌換序號。</div>
     <form id="surveyForm">
@@ -137,6 +147,10 @@
         <div class="charcount"><span id="q9count">0</span>/100</div>
       </fieldset>
 
+      <div class="turnstile-wrap">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAET4ybUJ_JznCJwc" data-callback="onTurnstileToken" data-expired-callback="onTurnstileExpired"></div>
+      </div>
+
       <button type="submit" id="submitBtn">送出問卷</button>
     </form>
   </div>
@@ -161,9 +175,34 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v7";
-var SUBMIT_URL = "https://survey.huahuaai.net/submit";
+var PAGE_VERSION = "v8";
+var API_BASE = "https://survey.huahuaai.net";
+var SUBMIT_URL = API_BASE + "/submit";
+var STATUS_URL = API_BASE + "/status";
 var MAX_CHOICES = 3;
+var turnstileToken = null;
+
+window.onTurnstileToken = function (token) { turnstileToken = token; };
+window.onTurnstileExpired = function () { turnstileToken = null; };
+
+function showCard(id) {
+  ["blockedCard", "surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
+    document.getElementById(cid).classList.toggle("hidden", cid !== id);
+  });
+}
+
+fetch(STATUS_URL)
+  .then(function (r) { return r.json(); })
+  .then(function (res) {
+    if (res.ok && res.blocked) {
+      showCard("blockedCard");
+    } else {
+      showCard("surveyCard");
+    }
+  })
+  .catch(function () {
+    showCard("surveyCard");
+  });
 
 function setupExclusiveGroup(fieldsetId, groupName) {
   var fieldset = document.getElementById(fieldsetId);
@@ -230,12 +269,6 @@ function bindCharCount(textareaName, countId) {
 bindCharCount('satisfied_change', 'q8count');
 bindCharCount('one_change', 'q9count');
 
-function showCard(id) {
-  ["surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
-    document.getElementById(cid).classList.toggle("hidden", cid !== id);
-  });
-}
-
 function collectChecked(form, name) {
   return Array.prototype.slice.call(form.querySelectorAll('input[name="' + name + '"]:checked')).map(function (el) { return el.value; });
 }
@@ -249,6 +282,13 @@ function withOther(form, values, otherFieldName) {
 
 function submitSurvey(e) {
   e.preventDefault();
+
+  if (!turnstileToken) {
+    document.getElementById("errorMsg").textContent = "人機驗證尚未完成，請稍候幾秒再按一次送出（若持續發生，請重新整理頁面）。";
+    showCard("errorCard");
+    return;
+  }
+
   var form = document.getElementById("surveyForm");
   var submitBtn = document.getElementById("submitBtn");
   submitBtn.disabled = true;
@@ -280,7 +320,7 @@ function submitSurvey(e) {
   fetch(SUBMIT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ answers: answers })
+    body: JSON.stringify({ answers: answers, turnstileToken: turnstileToken })
   })
     .then(function (r) { return r.json(); })
     .then(function (res) {
