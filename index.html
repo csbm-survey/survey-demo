@@ -3,14 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v8</title>
+<title>問卷調查 v9</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
+  .logo-wrap { max-width: 640px; margin: 0 auto 16px; text-align: center; }
+  .logo-wrap img { max-width: 200px; width: 100%; height: auto; }
   .card { max-width: 640px; margin: 0 auto 16px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; }
   h1 { font-size: 22px; margin-bottom: 4px; }
   .sub { color: #666; margin-bottom: 24px; font-size: 14px; }
+  .intro { color: #444; font-size: 14px; line-height: 1.8; margin-bottom: 24px; }
+  .intro p { margin: 0 0 12px; }
+  .intro ul { margin: 4px 0 12px; padding-left: 20px; }
+  .intro .greeting { font-weight: 600; color: #222; }
   fieldset { border: none; margin: 0 0 24px; padding: 0; }
   legend { font-weight: 600; margin-bottom: 8px; }
   .hint { font-size: 12px; color: #888; margin: -4px 0 8px; }
@@ -29,7 +35,7 @@
 
   .thanks-card { text-align: center; animation: fadeIn 0.4s ease-out; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .thanks-emoji { font-size: 48px; margin-bottom: 4px; }
+  .thanks-logo { max-width: 96px; width: 100%; height: auto; margin-bottom: 4px; }
   .thanks-card h1 { font-size: 24px; margin-bottom: 6px; }
   .thanks-card .sub { margin-bottom: 20px; }
   .code-box { background: linear-gradient(135deg, #111827, #1f2937); color: #34d399; font-size: 28px; font-weight: 700; letter-spacing: 3px; text-align: center; padding: 24px 16px; border-radius: 10px; margin: 8px 0 20px; word-break: break-all; border: 2px dashed #34d399; }
@@ -45,7 +51,8 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v8</div>
+  <div class="version-badge">頁面版本: v9</div>
+  <div class="logo-wrap"><img src="https://i.meee.com.tw/hQ5omnT.png" alt="天上碑M"></div>
 
   <div class="card blocked-card hidden" id="blockedCard">
     <div class="blocked-emoji">⏳</div>
@@ -53,8 +60,20 @@
   </div>
 
   <div class="card hidden" id="surveyCard">
-    <h1>簡易問卷調查</h1>
-    <div class="sub">填寫完畢送出後，會取得一組專屬兌換序號。</div>
+    <h1>《天上碑M》玩家心聲大調查</h1>
+    <div class="intro">
+      <p class="greeting">親愛的少俠，您好！</p>
+      <p>感謝您一路以來對《天上碑M》的支持與陪伴。為了讓遊戲體驗更加完善，我們誠摯邀請您撥空填寫這份問卷，分享您最真實的想法與建議。您的每一則回饋，都是我們持續前進的重要動力！</p>
+      <p>填寫完畢並送出後，即可取得一組專屬兌換序號，可兌換以下豐富獎勵：</p>
+      <ul>
+        <li>真開化神丹 *8</li>
+        <li>許願球 *80</li>
+        <li>王大俠的高級行囊 *1</li>
+        <li>武功經驗書 *1</li>
+      </ul>
+      <p>每組序號限每個帳號輸入一次，兌換後即失效，請務必妥善保存。</p>
+      <p>再次感謝您的參與，期待在江湖中與您並肩同行，共創更精彩的《天上碑M》！</p>
+    </div>
     <form id="surveyForm">
 
       <fieldset>
@@ -156,7 +175,7 @@
   </div>
 
   <div class="card thanks-card hidden" id="thanksCard">
-    <div class="thanks-emoji">🎉</div>
+    <img class="thanks-logo" src="https://i.meee.com.tw/hQ5omnT.png" alt="天上碑M">
     <h1>感謝您的填答！</h1>
     <div class="sub">請使用下方序號至遊戲內兌換獎勵</div>
     <div class="code-box" id="codeBox">------</div>
@@ -175,7 +194,7 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v8";
+var PAGE_VERSION = "v9";
 var API_BASE = "https://survey.huahuaai.net";
 var SUBMIT_URL = API_BASE + "/submit";
 var STATUS_URL = API_BASE + "/status";
