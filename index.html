@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查</title>
+<title>問卷調查 v1</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
+  .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
   .card { max-width: 640px; margin: 0 auto 16px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px; }
   h1 { font-size: 22px; margin-bottom: 4px; }
   .sub { color: #666; margin-bottom: 24px; font-size: 14px; }
@@ -36,6 +37,7 @@
 </style>
 </head>
 <body>
+  <div class="version-badge">頁面版本: v1</div>
   <div class="card">
     <h1>簡易問卷調查</h1>
     <div class="sub">測試用問卷頁面，填寫完畢請按送出。</div>
@@ -73,7 +75,7 @@
   </div>
 
   <div class="debug-card">
-    <button class="debug-toggle" id="debugToggle">▶ 系統診斷面板（給開發測試用，點此展開）</button>
+    <button class="debug-toggle" id="debugToggle">▶ 系統診斷面板 v1（給開發測試用，點此展開）</button>
     <div class="debug-body" id="debugBody">
       <div class="debug-section">
         <h3>1. 網址與 GET 參數</h3>
@@ -109,6 +111,8 @@
   </div>
 
 <script>
+var PAGE_VERSION = "v1";
+
 document.getElementById("surveyForm").addEventListener("submit", function (e) {
   e.preventDefault();
   var data = new FormData(e.target);
@@ -170,7 +174,7 @@ document.getElementById("surveyForm").addEventListener("submit", function (e) {
   }
 
   function scanGlobals(cleanKeys) {
-    var noise = ["dbgUrl", "dbgMeta", "dbgGlobals", "dbgBridge", "dbgMsg", "dbgAll", "dbgFilter", "webkitStorageInfo"];
+    var noise = ["dbgUrl", "dbgMeta", "dbgGlobals", "dbgBridge", "dbgMsg", "dbgAll", "dbgFilter", "PAGE_VERSION", "webkitStorageInfo"];
     var extra = Object.getOwnPropertyNames(window).filter(function (k) {
       return !cleanKeys[k] && noise.indexOf(k) === -1;
     });
@@ -295,7 +299,7 @@ document.getElementById("surveyForm").addEventListener("submit", function (e) {
   document.getElementById("debugToggle").addEventListener("click", function () {
     var body = document.getElementById("debugBody");
     var open = body.classList.toggle("open");
-    this.textContent = (open ? "▼" : "▶") + " 系統診斷面板（給開發測試用，點此展開）";
+    this.textContent = (open ? "▼" : "▶") + " 系統診斷面板 " + PAGE_VERSION + "（給開發測試用，點此展開）";
     if (open) runFullScan();
   });
   document.getElementById("dbgRescan").addEventListener("click", runFullScan);
@@ -303,6 +307,7 @@ document.getElementById("surveyForm").addEventListener("submit", function (e) {
   document.getElementById("dbgClearMsg").addEventListener("click", function () { msgLog = []; renderMsgLog(); });
   document.getElementById("dbgCopy").addEventListener("click", function () {
     var full = [
+      "== 頁面版本 ==\n" + PAGE_VERSION,
       "== 網址/GET參數 ==\n" + document.getElementById("dbgUrl").textContent,
       "== window.name/referrer ==\n" + document.getElementById("dbgMeta").textContent,
       "== 疑似注入的全域物件 ==\n" + document.getElementById("dbgGlobals").textContent,
