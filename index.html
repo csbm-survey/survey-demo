@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問卷調查 v5</title>
+<title>問卷調查 v6</title>
 <style>
   body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f6f8; margin: 0; padding: 24px 16px 80px; color: #222; }
   .version-badge { max-width: 640px; margin: 0 auto 12px; text-align: right; font-size: 12px; color: #9ca3af; }
@@ -30,7 +30,7 @@
 </style>
 </head>
 <body>
-  <div class="version-badge">頁面版本: v5</div>
+  <div class="version-badge">頁面版本: v6</div>
 
   <div class="card" id="surveyCard">
     <h1>簡易問卷調查</h1>
@@ -85,30 +85,8 @@
   </div>
 
 <script>
-var PAGE_VERSION = "v5";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynGowWk2Q8o8iaHRR3Kp5ZXOwDE2nbvuar40arEdGxyuOrN7Au9dYeHMqqw4yc852J/exec";
-
-function fetchWithTimeout(url, ms) {
-  var controller = new AbortController();
-  var timer = setTimeout(function () { controller.abort(); }, ms);
-  return fetch(url, { signal: controller.signal }).finally(function () { clearTimeout(timer); });
-}
-
-function getIp() {
-  return fetchWithTimeout("https://api.ipify.org?format=json", 2000)
-    .then(function (r) { return r.json(); })
-    .then(function (d) { return d.ip; })
-    .catch(function () {
-      return fetchWithTimeout("https://ipapi.co/json/", 2000)
-        .then(function (r) { return r.json(); })
-        .then(function (d) { return d.ip; });
-    })
-    .catch(function () { return "unknown"; });
-}
-
-// 頁面一開啟就先在背景查好 IP，跟玩家填表單同時進行，
-// 送出時不用再等，除非玩家填表單填得比查IP還快（2~4秒內）。
-var ipPromise = getIp();
+var PAGE_VERSION = "v6";
+var SUBMIT_URL = "https://survey.huahuaai.net/submit";
 
 function showCard(id) {
   ["surveyCard", "thanksCard", "errorCard"].forEach(function (cid) {
@@ -124,20 +102,17 @@ function submitSurvey(e) {
   submitBtn.textContent = "送出中...";
 
   var data = new FormData(form);
+  var payload = {
+    name: data.get("name") || "",
+    satisfaction: data.get("satisfaction") || "",
+    features: data.getAll("feature").join("、"),
+    comment: data.get("comment") || ""
+  };
 
-  ipPromise.then(function (ip) {
-    var payload = {
-      ip: ip,
-      name: data.get("name") || "",
-      satisfaction: data.get("satisfaction") || "",
-      features: data.getAll("feature").join("、"),
-      comment: data.get("comment") || ""
-    };
-    return fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
+  fetch(SUBMIT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   })
     .then(function (r) { return r.json(); })
     .then(function (res) {
